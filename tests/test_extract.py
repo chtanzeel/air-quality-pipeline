@@ -119,3 +119,12 @@ def test_cities_seed_has_the_five_cities():
     assert load_cities(seed, ["pew"])[0].name == "Peshawar"
     with pytest.raises(ValueError):
         load_cities(seed, ["xyz"])
+
+
+def test_backfill_plan_is_one_chunk_per_city_and_window():
+    from air_quality.tasks import plan_backfill
+
+    chunks = plan_backfill(date(2026, 1, 1), date(2026, 3, 5), ["lhr", "khi"], 31)
+    assert len(chunks) == 6
+    assert chunks[0] == {"city_id": "lhr", "start": "2026-01-01", "end": "2026-01-31"}
+    assert chunks[-1] == {"city_id": "khi", "start": "2026-03-04", "end": "2026-03-05"}

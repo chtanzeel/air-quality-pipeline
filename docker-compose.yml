@@ -1,5 +1,53 @@
 name: air-quality-pipeline
 
+# Trimmed from the official Airflow 3.3.2 compose file
+# (https://airflow.apache.org/docs/apache-airflow/3.3.2/docker-compose.yaml):
+# LocalExecutor instead of Celery, so no Redis, worker or Flower; no triggerer (nothing here is
+# deferrable); and the Airflow metadata database lives on the same Postgres server as the
+# warehouse, in its own database with its own role.
+
+x-airflow-common: &airflow-common
+  build: .
+  image: air-quality-pipeline-airflow:3.3.2
+  environment: &airflow-common-env
+    AIRFLOW__CORE__EXECUTOR: LocalExecutor
+    AIRFLOW__CORE__PARALLELISM: 4
+    AIRFLOW__CORE__AUTH_MANAGER: airflow.providers.fab.auth_manager.fab_auth_manager.FabAuthManager
+    AIRFLOW__DATABASE__SQL_ALCHEMY_CONN: postgresql+psycopg2://${AIRFLOW_DB_USER}:${AIRFLOW_DB_PASSWORD}@postgres:5432/${AIRFLOW_DB}
+    AIRFLOW__CORE__FERNET_KEY: ${AIRFLOW_FERNET_KEY:-}
+    AIRFLOW__CORE__DAGS_ARE_PAUSED_AT_CREATION: "true"
+    AIRFLOW__CORE__LOAD_EXAMPLES: "false"
+    AIRFLOW__CORE__EXECUTION_API_SERVER_URL: http://airflow-apiserver:8080/execution/
+    AIRFLOW__API_AUTH__JWT_SECRET: ${AIRFLOW_JWT_SECRET}
+    AIRFLOW__API_AUTH__JWT_ISSUER: airflow
+    AIRFLOW__SCHEDULER__ENABLE_HEALTH_CHECK: "true"
+    # Pipeline settings (src/air_quality/config.py). Containers reach Postgres by service name.
+    WAREHOUSE_HOST: postgres
+    WAREHOUSE_PORT: 5432
+    WAREHOUSE_DB: ${WAREHOUSE_DB}
+    WAREHOUSE_USER: ${WAREHOUSE_USER}
+    WAREHOUSE_PASSWORD: ${WAREHOUSE_PASSWORD}
+    AQ_START_DATE: ${AQ_START_DATE:-2022-08-04}
+    AQ_LOOKBACK_HOURS: ${AQ_LOOKBACK_HOURS:-48}
+    AQ_WINDOW_DAYS: ${AQ_WINDOW_DAYS:-31}
+    AQ_REQUEST_SLEEP_SECONDS: ${AQ_REQUEST_SLEEP_SECONDS:-1}
+    AQ_LANDING_DIR: /opt/aq/landing
+    AQ_CITIES_FILE: /opt/aq/dbt/seeds/cities.csv
+    AQ_DBT_BIN: /home/airflow/dbt-venv/bin/dbt
+    AQ_DBT_DIR: /opt/aq/dbt
+    AQ_DAGS_DIR: /opt/airflow/dags
+  volumes:
+    - ./dags:/opt/airflow/dags
+    - ./logs:/opt/airflow/logs
+    - ./src:/opt/aq/src
+    - ./dbt:/opt/aq/dbt
+    - ./landing:/opt/aq/landing
+    - ./tests:/opt/aq/tests
+  user: "${AIRFLOW_UID:-50000}:0"
+  depends_on: &airflow-common-depends-on
+    postgres:
+      condition: service_healthy
+
 services:
   postgres:
     image: postgres:17.11
@@ -23,6 +71,80 @@ services:
       timeout: 5s
       retries: 12
     restart: unless-stopped
+
+  airflow-init:
+    <<: *airflow-common
+    entrypoint: /bin/bash
+    command:
+      - -c
+      - |
+        set -e
+        mkdir -p /opt/airflow/logs /opt/aq/landing
+        chown -R "${AIRFLOW_UID:-50000}:0" /opt/airflow/logs /opt/aq/landing
+        # The image entrypoint migrates the metadata DB and creates the admin user (env below).
+        /entrypoint airflow version
+    environment:
+      <<: *airflow-common-env
+      _AIRFLOW_DB_MIGRATE: "true"
+      _AIRFLOW_WWW_USER_CREATE: "true"
+      _AIRFLOW_WWW_USER_USERNAME: ${AIRFLOW_ADMIN_USER:-airflow}
+      _AIRFLOW_WWW_USER_PASSWORD: ${AIRFLOW_ADMIN_PASSWORD:-airflow}
+    user: "0:0"
+
+  airflow-apiserver:
+    <<: *airflow-common
+    command: api-server
+    ports:
+      - "8080:8080"
+    healthcheck:
+      test: ["CMD", "curl", "--fail", "http://localhost:8080/api/v2/monitor/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 30s
+    restart: unless-stopped
+    depends_on:
+      <<: *airflow-common-depends-on
+      airflow-init:
+        condition: service_completed_successfully
+
+  airflow-scheduler:
+    <<: *airflow-common
+    command: scheduler
+    healthcheck:
+      test: ["CMD-SHELL", 'airflow jobs check --job-type SchedulerJob --hostname "$${HOSTNAME}"']
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 30s
+    restart: unless-stopped
+    depends_on:
+      <<: *airflow-common-depends-on
+      airflow-init:
+        condition: service_completed_successfully
+
+  airflow-dag-processor:
+    <<: *airflow-common
+    command: dag-processor
+    healthcheck:
+      test: ["CMD-SHELL", 'airflow jobs check --job-type DagProcessorJob --hostname "$${HOSTNAME}"']
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 30s
+    restart: unless-stopped
+    depends_on:
+      <<: *airflow-common-depends-on
+      airflow-init:
+        condition: service_completed_successfully
+
+  # One-off commands, e.g. `docker compose run --rm airflow-cli pytest tests/test_dags.py`.
+  airflow-cli:
+    <<: *airflow-common
+    profiles: [debug]
+    working_dir: /opt/aq
+    entrypoint: []
+    command: airflow version
 
 volumes:
   pgdata:
