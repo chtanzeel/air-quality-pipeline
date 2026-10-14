@@ -1,0 +1,12 @@
+# Force LF everywhere: CRLF breaks container entrypoints and shell scripts.
+* text=auto eol=lf
+
+*.sh       text eol=lf
+*.py       text eol=lf
+*.sql      text eol=lf
+*.yml      text eol=lf
+*.yaml     text eol=lf
+Dockerfile text eol=lf
+
+*.png binary
+*.jpg binary

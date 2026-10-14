@@ -1,0 +1,41 @@
+[build-system]
+requires = ["setuptools>=69"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "air-quality-pipeline"
+version = "0.1.0"
+description = "Incremental pipeline for CAMS air quality model data over five Pakistani cities: Open-Meteo API to Postgres, modelled with dbt, orchestrated by Airflow."
+readme = "README.md"
+requires-python = ">=3.10"
+authors = [{ name = "chtanzeel" }]
+dependencies = [
+    "requests>=2.32,<3",
+    "psycopg[binary]>=3.2,<4",
+    "python-dotenv>=1.0,<2",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=8,<10",
+    "ruff==0.17.0",
+]
+
+[project.scripts]
+aq = "air_quality.cli:main"
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.ruff]
+line-length = 100
+target-version = "py310"
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "UP", "B", "SIM"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+markers = [
+    "postgres: needs a running Postgres (docker compose up -d postgres)",
+]

@@ -67,3 +67,13 @@ The only citation on the air quality docs page is for **CAMS European air qualit
 ENSEMBLE data**, which is a different product from the CAMS Global forecasts used here. The
 licence page doesn't mention CAMS. The correct global-product attribution needs to come from the
 Copernicus/CAMS licence before the README is written.
+
+## Decisions taken from these findings
+
+1. Default backfill start date is **2022-08-04** (first hour with data), not 2022-08-01.
+2. Rows where **every** measure is null (before coverage, or gaps) are dropped at load.
+   Partly null rows are kept, e.g. `us_aqi` is null on 2022-08-04 while PM values exist.
+3. Staging adds an **`is_native_step`** flag (UTC hour divisible by 3), so 3-hourly model
+   output can be told apart from the API's interpolated hours.
+4. **One request per city per window**, matching the `landing/<city_id>/` layout and keeping
+   retries and lineage per city. This avoids relying on list position in multi-location responses.
