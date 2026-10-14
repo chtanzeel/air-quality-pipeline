@@ -1,0 +1,44 @@
+name: air_quality
+version: "1.0.0"
+config-version: 2
+profile: air_quality
+
+model-paths: ["models"]
+seed-paths: ["seeds"]
+test-paths: ["tests"]
+macro-paths: ["macros"]
+target-path: target
+clean-targets: [target, dbt_packages]
+
+vars:
+  # Fail the build if more than this share of hourly rows is quarantined.
+  quarantine_max_share: 0.01
+  # Sanity ceilings in µg/m³. CAMS values far above these are treated as impossible.
+  max_particulate_ug_m3: 10000
+  max_gas_ug_m3: 10000
+  max_carbon_monoxide_ug_m3: 100000
+  # Days with fewer hours than this are flagged incomplete.
+  min_hours_complete_day: 20
+
+seeds:
+  air_quality:
+    +schema: reference
+    cities:
+      +column_types:
+        city_id: text
+        city: text
+        province: text
+        latitude: double precision
+        longitude: double precision
+
+models:
+  air_quality:
+    staging:
+      +schema: staging
+      +materialized: view
+    quarantine:
+      +schema: quarantine
+      +materialized: table
+    marts:
+      +schema: marts
+      +materialized: table

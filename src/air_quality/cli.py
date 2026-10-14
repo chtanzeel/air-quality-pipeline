@@ -14,7 +14,7 @@ from dotenv import load_dotenv
 from air_quality import db, pipeline
 from air_quality.cities import load_cities
 from air_quality.client import OpenMeteoClient
-from air_quality.config import PipelineConfig
+from air_quality.config import REPO_ROOT, PipelineConfig
 from air_quality.schema import ensure_schema
 
 REQUIRED_SCHEMAS = ("raw", "ops")
@@ -70,6 +70,17 @@ def status() -> int:
     return 0
 
 
+def run_dbt(args: list[str]) -> int:
+    """Run dbt with this repo's project and profiles dirs, using the env loaded from .env."""
+    from dbt.cli.main import dbtRunner  # optional dependency: pip install -e ".[dbt]"
+
+    dbt_dir = str(REPO_ROOT / "dbt")
+    extra = [] if "--project-dir" in args else ["--project-dir", dbt_dir]
+    extra += [] if "--profiles-dir" in args else ["--profiles-dir", dbt_dir]
+    result = dbtRunner().invoke([*args, *extra])
+    return 0 if result.success else 1
+
+
 def _expand(paths: list[str]) -> list[Path]:
     out: list[Path] = []
     for p in map(Path, paths):
@@ -98,12 +109,16 @@ def main(argv: list[str] | None = None) -> int:
         p.add_argument("--cities", help="comma-separated city_ids (default: all)")
     p_rp = sub.add_parser("replay", help="re-load landed files or directories, no API calls")
     p_rp.add_argument("paths", nargs="+")
+    p_dbt = sub.add_parser("dbt", help="run dbt with the repo's project/profiles and .env")
+    p_dbt.add_argument("dbt_args", nargs=argparse.REMAINDER)
     args = parser.parse_args(argv)
 
     if args.command == "check-db":
         return check_db()
     if args.command == "status":
         return status()
+    if args.command == "dbt":
+        return run_dbt(args.dbt_args)
 
     cfg = PipelineConfig.from_env()
     with db.connect() as conn:

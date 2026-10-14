@@ -1,0 +1,113 @@
+version: 2
+
+models:
+  - name: stg_air_quality_hourly_all
+    description: >
+      Every raw row, typed and renamed, with derived time columns and a quarantine_reason
+      (null for valid rows). Split into stg_air_quality_hourly and quarantine_air_quality_hourly.
+    columns:
+      - name: quarantine_reason
+        description: Semicolon-separated reasons the row failed validation, or null.
+
+  - name: stg_air_quality_hourly
+    description: >
+      Valid hourly rows. CAMS global model data (~45 km grid, 3-hourly native steps,
+      interpolated in between by Open-Meteo). Concentrations in µg/m³.
+    data_tests:
+      - unique_combination_of_columns:
+          arguments:
+            combination: [city_id, measured_at]
+    columns:
+      - name: city_id
+        data_tests:
+          - not_null
+          - relationships:
+              arguments:
+                to: ref('dim_city')
+                field: city_id
+      - name: measured_at
+        description: UTC hour the model value is valid for (not a measurement time).
+        data_tests: [not_null]
+      - name: date_pkt
+        description: Local date in Pakistan Standard Time (UTC+5).
+        data_tests: [not_null]
+      - name: is_native_step
+        description: True on 3-hourly CAMS model steps (00, 03, ... UTC); false on interpolated hours.
+        data_tests: [not_null]
+      - name: smog_season
+        description: >
+          'YYYY-YY' for 1 Oct - 31 Jan (local date), named by its starting year; null otherwise.
+        data_tests:
+          - matches_pattern:
+              arguments:
+                pattern: "^20[0-9]{2}-[0-9]{2}$"
+      - name: pm2_5_ug_m3
+        data_tests:
+          - accepted_range:
+              arguments: {min_value: 0, max_value: "{{ var('max_particulate_ug_m3') }}"}
+      - name: pm10_ug_m3
+        data_tests:
+          - accepted_range:
+              arguments: {min_value: 0, max_value: "{{ var('max_particulate_ug_m3') }}"}
+      - name: no2_ug_m3
+        data_tests:
+          - accepted_range:
+              arguments: {min_value: 0, max_value: "{{ var('max_gas_ug_m3') }}"}
+      - name: so2_ug_m3
+        data_tests:
+          - accepted_range:
+              arguments: {min_value: 0, max_value: "{{ var('max_gas_ug_m3') }}"}
+      - name: o3_ug_m3
+        data_tests:
+          - accepted_range:
+              arguments: {min_value: 0, max_value: "{{ var('max_gas_ug_m3') }}"}
+      - name: co_ug_m3
+        data_tests:
+          - accepted_range:
+              arguments: {min_value: 0, max_value: "{{ var('max_carbon_monoxide_ug_m3') }}"}
+      - name: dust_ug_m3
+        data_tests:
+          - accepted_range:
+              arguments: {min_value: 0, max_value: "{{ var('max_particulate_ug_m3') }}"}
+      - name: us_aqi
+        description: US AQI from Open-Meteo (rolling means; null for the first day of coverage).
+        data_tests:
+          - accepted_range:
+              arguments: {min_value: 0}
+
+unit_tests:
+  - name: test_local_date_season_and_native_step
+    description: Seasons follow the Pakistan local date, including at the UTC/PKT day boundary.
+    model: stg_air_quality_hourly_all
+    given:
+      - input: source('raw', 'air_quality_hourly')
+        rows:
+          # 23:00 PKT 30 Sep / 00:00 PKT 1 Oct / 02:00 PKT 1 Jan / 23:00 PKT 31 Jan / 00:00 PKT 1 Feb
+          - {city_id: lhr, measured_at: "2024-09-30 18:00:00+00", pm2_5: 10, pm10: 20}
+          - {city_id: lhr, measured_at: "2024-09-30 19:00:00+00", pm2_5: 10, pm10: 20}
+          - {city_id: lhr, measured_at: "2023-12-31 21:00:00+00", pm2_5: 10, pm10: 20}
+          - {city_id: lhr, measured_at: "2025-01-31 18:00:00+00", pm2_5: 10, pm10: 20}
+          - {city_id: lhr, measured_at: "2025-01-31 19:00:00+00", pm2_5: 10, pm10: 20}
+    expect:
+      rows:
+        - {measured_at: "2024-09-30 18:00:00+00", date_pkt: "2024-09-30", smog_season: null, is_native_step: true}
+        - {measured_at: "2024-09-30 19:00:00+00", date_pkt: "2024-10-01", smog_season: "2024-25", is_native_step: false}
+        - {measured_at: "2023-12-31 21:00:00+00", date_pkt: "2024-01-01", smog_season: "2023-24", is_native_step: true}
+        - {measured_at: "2025-01-31 18:00:00+00", date_pkt: "2025-01-31", smog_season: "2024-25", is_native_step: true}
+        - {measured_at: "2025-01-31 19:00:00+00", date_pkt: "2025-02-01", smog_season: null, is_native_step: false}
+
+  - name: test_quarantine_reasons
+    model: stg_air_quality_hourly_all
+    given:
+      - input: source('raw', 'air_quality_hourly')
+        rows:
+          - {city_id: lhr, measured_at: "2025-11-01 00:00:00+00", pm2_5: 80, pm10: 120, ozone: 30, us_aqi: 160}
+          - {city_id: lhr, measured_at: "2025-11-01 01:00:00+00", pm2_5: -1, pm10: 120, ozone: 30, us_aqi: 160}
+          - {city_id: lhr, measured_at: "2025-11-01 02:00:00+00", pm2_5: 130, pm10: 120, ozone: -2, us_aqi: 160}
+          - {city_id: lhr, measured_at: "2025-11-01 03:00:00+00", pm2_5: 80, pm10: 120, carbon_monoxide: 200000, us_aqi: 160}
+    expect:
+      rows:
+        - {measured_at: "2025-11-01 00:00:00+00", quarantine_reason: null}
+        - {measured_at: "2025-11-01 01:00:00+00", quarantine_reason: "negative pm2_5"}
+        - {measured_at: "2025-11-01 02:00:00+00", quarantine_reason: "negative ozone; pm2_5 exceeds pm10"}
+        - {measured_at: "2025-11-01 03:00:00+00", quarantine_reason: "carbon_monoxide above 100000"}

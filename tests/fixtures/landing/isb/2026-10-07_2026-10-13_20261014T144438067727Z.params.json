@@ -1,0 +1,18 @@
+{
+  "url": "https://air-quality-api.open-meteo.com/v1/air-quality?latitude=33.6844&longitude=73.0479&hourly=pm2_5%2Cpm10%2Cnitrogen_dioxide%2Csulphur_dioxide%2Cozone%2Ccarbon_monoxide%2Cdust%2Cus_aqi&start_date=2026-10-07&end_date=2026-10-13&timezone=GMT&domains=cams_global",
+  "params": {
+    "latitude": "33.6844",
+    "longitude": "73.0479",
+    "hourly": "pm2_5,pm10,nitrogen_dioxide,sulphur_dioxide,ozone,carbon_monoxide,dust,us_aqi",
+    "start_date": "2026-10-07",
+    "end_date": "2026-10-13",
+    "timezone": "GMT",
+    "domains": "cams_global"
+  },
+  "http_status": 200,
+  "fetched_at": "2026-10-14T14:44:38.067727Z",
+  "city_id": "isb",
+  "window_start": "2026-10-07",
+  "window_end": "2026-10-13",
+  "run_id": "backfill__20261014T144434Z__b54ea952"
+}

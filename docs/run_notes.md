@@ -22,3 +22,21 @@ Local machine (Windows 11, Docker Desktop), CLI against Postgres 17.11 in Compos
   `(city_id, measured_at)`.
 - Wall times come from `ops.run_log.duration_seconds`. Each run includes one 1 s pause per
   request after the first.
+
+## 2026-10-14: dbt (Stage 4)
+
+`aq dbt build` on the 915-row warehouse (dbt Core 1.12.6, dbt-postgres 1.11.0):
+**PASS=59 WARN=0 ERROR=0**, made up of 1 seed, 7 models (5 tables, 2 views), 47 data tests and
+4 unit tests, in 3.9 s.
+
+Negative checks, run in the `warehouse_test` scratch database:
+
+- Injected a row with `pm2_5 = -3`: it went to `quarantine.quarantine_air_quality_hourly` with
+  reason `negative pm2_5`, and the build still passed (2 of 916 rows quarantined, below 1%).
+- Injected 20 more bad rows (22 of 937, 2.3%): `assert_quarantine_share_below_threshold` failed
+  and `aq dbt` exited with 1.
+- Deleted every hour after 2026-09-30, then ran `dbt source freshness`: `ERROR STALE`, exit 1.
+  On the real warehouse it passes.
+
+CI rehearsal: replaying `tests/fixtures/landing` (five real 7-day files, 840 rows) into an empty
+database, then `dbt build`, also gives PASS=59.

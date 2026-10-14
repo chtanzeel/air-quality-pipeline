@@ -20,6 +20,11 @@ dev = [
     "pytest>=8,<10",
     "ruff==0.17.0",
 ]
+# dbt Core v1 with the Postgres adapter (the brief's choice; dbt v2/Fusion is a separate product).
+dbt = [
+    "dbt-core==1.12.6",
+    "dbt-postgres==1.11.0",
+]
 
 [project.scripts]
 aq = "air_quality.cli:main"

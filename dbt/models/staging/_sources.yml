@@ -1,0 +1,28 @@
+version: 2
+
+sources:
+  - name: raw
+    schema: raw
+    description: Loaded by the Python pipeline (src/air_quality). One row per city and UTC hour.
+    tables:
+      - name: air_quality_hourly
+        description: >
+          CAMS global atmospheric composition forecasts (model data on a ~45 km grid) via the
+          Open-Meteo API. Not ground-station measurements.
+        config:
+          loaded_at_field: measured_at
+          # The daily run loads up to the current hour, so the newest hour should never be
+          # much more than a day old. Two missed daily runs is an error.
+          freshness:
+            warn_after: {count: 30, period: hour}
+            error_after: {count: 54, period: hour}
+        data_tests:
+          - unique_combination_of_columns:
+              arguments:
+                combination: [city_id, measured_at]
+        columns:
+          - name: city_id
+            data_tests: [not_null]
+          - name: measured_at
+            description: UTC hour the model value is valid for.
+            data_tests: [not_null]

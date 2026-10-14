@@ -1,0 +1,144 @@
+version: 2
+
+models:
+  - name: dim_city
+    description: The five cities, from the cities seed.
+    columns:
+      - name: city_id
+        data_tests: [unique, not_null]
+
+  - name: fct_air_quality_daily
+    description: >
+      One row per city and local (PKT) day. A day is complete when it has at least
+      var('min_hours_complete_day') of 24 hours (default 20).
+    data_tests:
+      - unique_combination_of_columns:
+          arguments:
+            combination: [city_id, day]
+    columns:
+      - name: city_id
+        data_tests:
+          - not_null
+          - relationships:
+              arguments:
+                to: ref('dim_city')
+                field: city_id
+      - name: day
+        data_tests: [not_null]
+      - name: hours_present
+        data_tests:
+          - accepted_range:
+              arguments: {min_value: 1, max_value: 24}
+      - name: native_steps_present
+        description: Hours that are 3-hourly CAMS model steps rather than interpolated (max 8).
+        data_tests:
+          - accepted_range:
+              arguments: {min_value: 0, max_value: 8}
+      - name: is_complete
+        data_tests: [not_null]
+      - name: mean_pm2_5_ug_m3
+        data_tests:
+          - accepted_range:
+              arguments: {min_value: 0}
+
+  - name: fct_aqi_band_hours
+    description: Hours per city, local month and US AQI band (EPA categories).
+    data_tests:
+      - unique_combination_of_columns:
+          arguments:
+            combination: [city_id, month, aqi_band]
+    columns:
+      - name: city_id
+        data_tests:
+          - not_null
+          - relationships:
+              arguments:
+                to: ref('dim_city')
+                field: city_id
+      - name: aqi_band
+        data_tests:
+          - not_null
+          - accepted_values:
+              arguments:
+                values:
+                  - Good
+                  - Moderate
+                  - Unhealthy for Sensitive Groups
+                  - Unhealthy
+                  - Very Unhealthy
+                  - Hazardous
+      - name: hours
+        data_tests:
+          - accepted_range:
+              arguments: {min_value: 1, max_value: 744}
+
+  - name: mart_smog_season_summary
+    description: >
+      Cities compared across smog seasons (1 Oct - 31 Jan, local time). is_partial marks a
+      season whose end is after the last loaded day (the current season).
+    data_tests:
+      - unique_combination_of_columns:
+          arguments:
+            combination: [city_id, smog_season]
+    columns:
+      - name: city_id
+        data_tests:
+          - not_null
+          - relationships:
+              arguments:
+                to: ref('dim_city')
+                field: city_id
+      - name: smog_season
+        data_tests: [not_null]
+      - name: is_partial
+        data_tests: [not_null]
+      - name: coverage_pct
+        data_tests:
+          - accepted_range:
+              arguments: {min_value: 0, max_value: 100}
+
+unit_tests:
+  - name: test_aqi_band_boundaries
+    description: EPA band edges (50/51, 100/101, ...) land in the right band; null AQI is left out.
+    model: fct_aqi_band_hours
+    given:
+      - input: ref('stg_air_quality_hourly')
+        rows:
+          - {city_id: lhr, date_pkt: "2025-11-05", us_aqi: 50}
+          - {city_id: lhr, date_pkt: "2025-11-05", us_aqi: 51}
+          - {city_id: lhr, date_pkt: "2025-11-05", us_aqi: 100}
+          - {city_id: lhr, date_pkt: "2025-11-05", us_aqi: 101}
+          - {city_id: lhr, date_pkt: "2025-11-05", us_aqi: 150}
+          - {city_id: lhr, date_pkt: "2025-11-05", us_aqi: 151}
+          - {city_id: lhr, date_pkt: "2025-11-05", us_aqi: 200}
+          - {city_id: lhr, date_pkt: "2025-11-05", us_aqi: 201}
+          - {city_id: lhr, date_pkt: "2025-11-05", us_aqi: 300}
+          - {city_id: lhr, date_pkt: "2025-11-05", us_aqi: 301}
+          - {city_id: lhr, date_pkt: "2025-11-05", us_aqi: null}
+    expect:
+      rows:
+        - {aqi_band: Good, aqi_band_order: 1, hours: 1}
+        - {aqi_band: Moderate, aqi_band_order: 2, hours: 2}
+        - {aqi_band: Unhealthy for Sensitive Groups, aqi_band_order: 3, hours: 2}
+        - {aqi_band: Unhealthy, aqi_band_order: 4, hours: 2}
+        - {aqi_band: Very Unhealthy, aqi_band_order: 5, hours: 2}
+        - {aqi_band: Hazardous, aqi_band_order: 6, hours: 1}
+
+  - name: test_daily_completeness_flag
+    description: 20 of 24 hours is complete, 19 is not.
+    model: fct_air_quality_daily
+    given:
+      - input: ref('stg_air_quality_hourly')
+        format: sql
+        rows: |
+          select 'lhr' as city_id, date '2025-11-05' as date_pkt, '2025-26' as smog_season,
+                 h % 3 = 0 as is_native_step, 100.0::float8 as pm2_5_ug_m3,
+                 150.0::float8 as pm10_ug_m3, 180 as us_aqi
+          from generate_series(0, 19) h
+          union all
+          select 'lhr', date '2025-11-06', '2025-26', h % 3 = 0, 50.0, 80.0, 120
+          from generate_series(0, 18) h
+    expect:
+      rows:
+        - {day: "2025-11-05", hours_present: 20, native_steps_present: 7, is_complete: true}
+        - {day: "2025-11-06", hours_present: 19, native_steps_present: 7, is_complete: false}

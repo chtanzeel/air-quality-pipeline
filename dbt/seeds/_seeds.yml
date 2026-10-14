@@ -1,0 +1,16 @@
+version: 2
+
+seeds:
+  - name: cities
+    description: The five cities and the coordinates sent to the API (city centres).
+    columns:
+      - name: city_id
+        data_tests: [unique, not_null]
+      - name: city
+        data_tests: [not_null]
+      - name: latitude
+        data_tests:
+          - accepted_range: {arguments: {min_value: 23, max_value: 37.5}}  # Pakistan
+      - name: longitude
+        data_tests:
+          - accepted_range: {arguments: {min_value: 60, max_value: 78}}

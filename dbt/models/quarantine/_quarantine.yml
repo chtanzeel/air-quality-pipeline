@@ -1,0 +1,11 @@
+version: 2
+
+models:
+  - name: quarantine_air_quality_hourly
+    description: >
+      Hourly rows that failed validation (negative values, values above sanity ceilings, or
+      PM2.5 above PM10), with the reason. Excluded from staging and marts. The build fails if
+      their share of all rows passes var('quarantine_max_share').
+    columns:
+      - name: quarantine_reason
+        data_tests: [not_null]
