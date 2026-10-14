@@ -31,10 +31,14 @@ Local machine (Windows 11, Docker Desktop), CLI against Postgres 17.11 in Compos
 
 Negative checks, run in the `warehouse_test` scratch database:
 
+Starting from the 915 real rows replayed into an empty scratch database:
+
 - Injected a row with `pm2_5 = -3`: it went to `quarantine.quarantine_air_quality_hourly` with
-  reason `negative pm2_5`, and the build still passed (2 of 916 rows quarantined, below 1%).
-- Injected 20 more bad rows (22 of 937, 2.3%): `assert_quarantine_share_below_threshold` failed
-  and `aq dbt` exited with 1.
+  reason `negative pm2_5`, and the build passed (1 of 916 rows quarantined, below 1%).
+- Injected 20 more bad rows (21 of 936 quarantined, 2.2%): `assert_quarantine_share_below_threshold`
+  failed and `aq dbt build` exited with 1.
+- In an earlier, less clean run, a `pm2_5` of 999 left over from a pytest run was quarantined
+  as `pm2_5 exceeds pm10`, which exercised that rule against the database as well.
 - Deleted every hour after 2026-09-30, then ran `dbt source freshness`: `ERROR STALE`, exit 1.
   On the real warehouse it passes.
 
