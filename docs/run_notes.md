@@ -139,3 +139,13 @@ matches exactly these 60 hours.
   (it was showing −50% for two weeks of October 2026 against a full season).
 - Full test suite inside the Airflow image (`AQ_REQUIRE_POSTGRES=1 AQ_REQUIRE_AIRFLOW=1`):
   53 passed. The daily DAG's dbt step after these changes: PASS=66.
+
+## 2026-10-14: fresh clone and CI
+
+- Fresh `gh repo clone` into an empty folder, then `cp .env.example .env && docker compose -p aqp-fresh up -d --build --wait`
+  (a separate project name, so it got a new, empty Postgres volume; the image build was cached
+  locally): all services healthy in 43 s. UI HTTP 200, login with `airflow`/`airflow` OK,
+  databases `airflow, postgres, warehouse, warehouse_test` created, both DAGs listed, no import
+  errors.
+- GitHub Actions run 38596690292 on `5104331`: lint, test-and-dbt (pytest 47 passed + DAG module
+  skipped; replay 840 rows; `dbt build` PASS=66) and dag-integrity (6 passed), all green.
