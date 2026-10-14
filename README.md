@@ -37,8 +37,6 @@ for Docker). The raw run notes are in [docs/run_notes.md](docs/run_notes.md).
 | pytest | **53 passed** (unit, loader on real Postgres, DAG integrity) |
 | Footprint | about 0.8 GiB RAM at idle (API server, scheduler, DAG processor, Postgres) |
 
-![Airflow grid view of air_quality_daily: extract, load, dbt_build and quality_summary, all successful across three runs](docs/airflow_daily_dag.png)
-
 ## Findings
 
 From `marts.mart_smog_season_summary` and `marts.fct_air_quality_daily`. Smog season = 1 October
@@ -280,6 +278,6 @@ dbt/                       seeds/, models/{staging,quarantine,marts}/, tests/, m
 sql/init/                  creates warehouse, warehouse_test and airflow databases and roles
 tests/                     pytest suites + fixtures/ (real API responses, landing files)
 scripts/                   make_chart.py, portfolio_stats.py
-docs/                      probe findings, run notes, chart, DAG screenshot, portfolio_stats.json
+docs/                      probe findings, run notes, chart, portfolio_stats.json
 Dockerfile, docker-compose.yml, .github/workflows/ci.yml
 ```
