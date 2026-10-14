@@ -132,7 +132,7 @@ def main() -> None:
         "pytest_passed": args.pytest_passed,
         "stack": {"airflow": "3.3.2", "dbt_core": "1.12.6", "postgres": "17.11"},
     }
-    OUT.write_text(json.dumps(stats, indent=2, default=str) + "\n", encoding="utf-8")
+    OUT.write_text(json.dumps(stats, indent=2, default=str) + "\n", encoding="utf-8", newline="\n")
     print(f"wrote {OUT}")
 
 
