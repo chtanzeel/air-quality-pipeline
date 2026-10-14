@@ -1,0 +1,21 @@
+{
+  "url": "https://air-quality-api.open-meteo.com/v1/air-quality",
+  "params": {
+    "hourly": "pm2_5,pm10,nitrogen_dioxide,sulphur_dioxide,ozone,carbon_monoxide,dust,us_aqi",
+    "timezone": "GMT",
+    "domains": "cams_global",
+    "latitude": "31.5204,24.8607,33.6844,34.0151,31.4504",
+    "longitude": "74.3587,67.0011,73.0479,71.5249,73.1350",
+    "start_date": "2026-10-12",
+    "end_date": "2026-10-16"
+  },
+  "http_status": 200,
+  "fetched_at": "2026-10-14T14:19:46Z",
+  "city_ids_in_order": [
+    "lhr",
+    "khi",
+    "isb",
+    "pew",
+    "fsd"
+  ]
+}

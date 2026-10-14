@@ -1,0 +1,17 @@
+{
+  "url": "https://air-quality-api.open-meteo.com/v1/air-quality",
+  "params": {
+    "hourly": "pm25",
+    "timezone": "GMT",
+    "domains": "cams_global",
+    "latitude": "31.5204",
+    "longitude": "74.3587",
+    "start_date": "2026-10-12",
+    "end_date": "2026-10-13"
+  },
+  "http_status": 400,
+  "fetched_at": "2026-10-14T14:21Z",
+  "city_ids_in_order": [
+    "lhr"
+  ]
+}
