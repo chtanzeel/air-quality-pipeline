@@ -120,3 +120,22 @@ same window, with 0 inserted and 320 unchanged.
 | scheduled 01:30 interval (run on unpause) | 10-12..10-14 | 360 | 0 | 0 | 320 |
 | manual 15:41Z | 10-12..10-14 | 360 | 0 | 0 | 320 |
 | manual 16:02Z | 10-12..10-14 | 360 | 5 | 0 | 320 |
+
+## 2026-10-14: findings checks (Stage 6)
+
+While checking the AQI band mart, every city showed about 45 "Good" hours in Nov–Dec, which
+isn't plausible for Lahore. Investigation found an **upstream dropout**: from
+2022-12-13 12:00Z to 2022-12-15 23:00Z (60 hours), all five cities at once report PM2.5 below
+2 µg/m³, PM10 about 1, NO₂ and dust 0, CO about 61 and ozone flat at about 30. It happens
+nowhere else in the record. The rule "≥ 4 cities with PM2.5 < 2 and NO₂ < 0.5 in the same hour"
+matches exactly these 60 hours.
+
+- Listed in `dbt/seeds/upstream_incidents.csv`. Its rows (300) and the following 24 h where
+  US AQI is still distorted by its rolling mean (120) are quarantined.
+- `assert_no_unlisted_upstream_dropouts` fails the build for any unlisted dropout hour. With the
+  seed emptied it failed with 60 rows and exit 1; restored, `dbt build` PASS=66.
+- Quarantine total: 561 of 183,925 rows (0.31%).
+- `mart_smog_season_summary.pct_change_vs_prev_season` is now null for a partial season
+  (it was showing −50% for two weeks of October 2026 against a full season).
+- Full test suite inside the Airflow image (`AQ_REQUIRE_POSTGRES=1 AQ_REQUIRE_AIRFLOW=1`):
+  53 passed. The daily DAG's dbt step after these changes: PASS=66.

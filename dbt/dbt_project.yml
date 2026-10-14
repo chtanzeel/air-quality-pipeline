@@ -30,6 +30,13 @@ seeds:
         province: text
         latitude: double precision
         longitude: double precision
+    upstream_incidents:
+      +column_types:
+        incident_id: text
+        start_utc: timestamptz
+        end_utc: timestamptz
+        aqi_affected_until_utc: timestamptz
+        description: text
 
 models:
   air_quality:

@@ -14,3 +14,17 @@ seeds:
       - name: longitude
         data_tests:
           - accepted_range: {arguments: {min_value: 60, max_value: 78}}
+
+  - name: upstream_incidents
+    description: >
+      Upstream data incidents found by investigation (see assert_no_unlisted_upstream_dropouts).
+      Rows from start_utc to aqi_affected_until_utc are quarantined.
+    columns:
+      - name: incident_id
+        data_tests: [unique, not_null]
+      - name: start_utc
+        data_tests: [not_null]
+      - name: end_utc
+        data_tests: [not_null]
+      - name: aqi_affected_until_utc
+        data_tests: [not_null]

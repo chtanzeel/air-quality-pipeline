@@ -1,0 +1,487 @@
+{
+  "project": "air-quality-pipeline",
+  "generated_at": "2026-10-14T16:16:26+00:00",
+  "data_note": "CAMS global atmospheric composition forecasts (model data, ~45 km grid, 3-hourly native steps) via Open-Meteo; not ground-station measurements.",
+  "cities": [
+    {
+      "city_id": "fsd",
+      "city": "Faisalabad",
+      "province": "Punjab",
+      "latitude": 31.4504,
+      "longitude": 73.135
+    },
+    {
+      "city_id": "isb",
+      "city": "Islamabad",
+      "province": "Capital Territory",
+      "latitude": 33.6844,
+      "longitude": 73.0479
+    },
+    {
+      "city_id": "khi",
+      "city": "Karachi",
+      "province": "Sindh",
+      "latitude": 24.8607,
+      "longitude": 67.0011
+    },
+    {
+      "city_id": "lhr",
+      "city": "Lahore",
+      "province": "Punjab",
+      "latitude": 31.5204,
+      "longitude": 74.3587
+    },
+    {
+      "city_id": "pew",
+      "city": "Peshawar",
+      "province": "Khyber Pakhtunkhwa",
+      "latitude": 34.0151,
+      "longitude": 71.5249
+    }
+  ],
+  "date_range_utc": {
+    "first_hour": "2022-08-04T00:00:00+00:00",
+    "last_hour": "2026-10-14T16:00:00+00:00"
+  },
+  "total_rows": 183925,
+  "rows_quarantined": 561,
+  "quarantine_share": 0.00305,
+  "quarantine_reasons": {
+    "upstream incident": 300,
+    "negative ozone": 131,
+    "us_aqi affected by upstream incident": 120,
+    "pm2_5 exceeds pm10": 6,
+    "negative nitrogen_dioxide": 4
+  },
+  "backfill": {
+    "run_id": "manual__2026-10-14T15:35:06.571629+00:00",
+    "window": "2022-08-04..2026-10-14",
+    "files": 250,
+    "rows_inserted": 183920,
+    "runtime_seconds": 220.48,
+    "runtime_note": "ops.run_log duration: plan task start to quality summary, including dbt build"
+  },
+  "monthly_mean_pm2_5_ug_m3": [
+    {
+      "month": "2022-08",
+      "fsd": 39.9,
+      "isb": 36.0,
+      "khi": 33.9,
+      "lhr": 46.4,
+      "pew": 36.9
+    },
+    {
+      "month": "2022-09",
+      "fsd": 51.8,
+      "isb": 48.9,
+      "khi": 27.7,
+      "lhr": 67.7,
+      "pew": 51.0
+    },
+    {
+      "month": "2022-10",
+      "fsd": 78.5,
+      "isb": 42.7,
+      "khi": 37.1,
+      "lhr": 102.9,
+      "pew": 44.3
+    },
+    {
+      "month": "2022-11",
+      "fsd": 80.5,
+      "isb": 43.8,
+      "khi": 49.3,
+      "lhr": 103.5,
+      "pew": 42.8
+    },
+    {
+      "month": "2022-12",
+      "fsd": 111.9,
+      "isb": 55.6,
+      "khi": 63.2,
+      "lhr": 134.8,
+      "pew": 48.6
+    },
+    {
+      "month": "2023-01",
+      "fsd": 109.7,
+      "isb": 59.4,
+      "khi": 52.4,
+      "lhr": 131.2,
+      "pew": 49.1
+    },
+    {
+      "month": "2023-02",
+      "fsd": 68.4,
+      "isb": 49.8,
+      "khi": 50.5,
+      "lhr": 76.4,
+      "pew": 44.9
+    },
+    {
+      "month": "2023-03",
+      "fsd": 46.7,
+      "isb": 36.7,
+      "khi": 47.2,
+      "lhr": 64.6,
+      "pew": 36.8
+    },
+    {
+      "month": "2023-04",
+      "fsd": 37.3,
+      "isb": 26.4,
+      "khi": 24.0,
+      "lhr": 43.5,
+      "pew": 29.9
+    },
+    {
+      "month": "2023-05",
+      "fsd": 36.9,
+      "isb": 28.7,
+      "khi": 18.2,
+      "lhr": 41.9,
+      "pew": 30.6
+    },
+    {
+      "month": "2023-06",
+      "fsd": 41.0,
+      "isb": 34.2,
+      "khi": 21.2,
+      "lhr": 52.3,
+      "pew": 33.1
+    },
+    {
+      "month": "2023-07",
+      "fsd": 47.4,
+      "isb": 37.5,
+      "khi": 26.1,
+      "lhr": 44.3,
+      "pew": 31.2
+    },
+    {
+      "month": "2023-08",
+      "fsd": 54.7,
+      "isb": 43.0,
+      "khi": 18.4,
+      "lhr": 57.2,
+      "pew": 38.1
+    },
+    {
+      "month": "2023-09",
+      "fsd": 44.1,
+      "isb": 34.6,
+      "khi": 25.3,
+      "lhr": 46.8,
+      "pew": 29.7
+    },
+    {
+      "month": "2023-10",
+      "fsd": 67.5,
+      "isb": 26.7,
+      "khi": 26.9,
+      "lhr": 59.7,
+      "pew": 25.8
+    },
+    {
+      "month": "2023-11",
+      "fsd": 96.4,
+      "isb": 30.7,
+      "khi": 49.2,
+      "lhr": 83.7,
+      "pew": 30.3
+    },
+    {
+      "month": "2023-12",
+      "fsd": 124.5,
+      "isb": 36.9,
+      "khi": 34.1,
+      "lhr": 108.8,
+      "pew": 38.3
+    },
+    {
+      "month": "2024-01",
+      "fsd": 176.2,
+      "isb": 66.5,
+      "khi": 43.7,
+      "lhr": 149.6,
+      "pew": 58.7
+    },
+    {
+      "month": "2024-02",
+      "fsd": 70.1,
+      "isb": 32.2,
+      "khi": 28.3,
+      "lhr": 63.0,
+      "pew": 29.2
+    },
+    {
+      "month": "2024-03",
+      "fsd": 44.8,
+      "isb": 27.4,
+      "khi": 25.3,
+      "lhr": 42.9,
+      "pew": 23.1
+    },
+    {
+      "month": "2024-04",
+      "fsd": 33.1,
+      "isb": 21.7,
+      "khi": 20.8,
+      "lhr": 31.3,
+      "pew": 20.4
+    },
+    {
+      "month": "2024-05",
+      "fsd": 38.3,
+      "isb": 19.6,
+      "khi": 17.3,
+      "lhr": 36.4,
+      "pew": 17.7
+    },
+    {
+      "month": "2024-06",
+      "fsd": 46.4,
+      "isb": 29.4,
+      "khi": 21.9,
+      "lhr": 41.7,
+      "pew": 22.2
+    },
+    {
+      "month": "2024-07",
+      "fsd": 63.5,
+      "isb": 47.0,
+      "khi": 30.0,
+      "lhr": 57.5,
+      "pew": 41.5
+    },
+    {
+      "month": "2024-08",
+      "fsd": 40.9,
+      "isb": 31.0,
+      "khi": 19.9,
+      "lhr": 36.5,
+      "pew": 28.9
+    },
+    {
+      "month": "2024-09",
+      "fsd": 54.0,
+      "isb": 35.6,
+      "khi": 19.7,
+      "lhr": 51.7,
+      "pew": 29.6
+    },
+    {
+      "month": "2024-10",
+      "fsd": 69.1,
+      "isb": 33.7,
+      "khi": 24.4,
+      "lhr": 66.8,
+      "pew": 30.3
+    },
+    {
+      "month": "2024-11",
+      "fsd": 136.5,
+      "isb": 50.7,
+      "khi": 30.5,
+      "lhr": 124.9,
+      "pew": 47.6
+    },
+    {
+      "month": "2024-12",
+      "fsd": 158.4,
+      "isb": 53.9,
+      "khi": 39.1,
+      "lhr": 116.4,
+      "pew": 52.4
+    },
+    {
+      "month": "2025-01",
+      "fsd": 155.1,
+      "isb": 49.9,
+      "khi": 40.5,
+      "lhr": 128.3,
+      "pew": 52.4
+    },
+    {
+      "month": "2025-02",
+      "fsd": 80.2,
+      "isb": 32.9,
+      "khi": 29.5,
+      "lhr": 71.3,
+      "pew": 33.8
+    },
+    {
+      "month": "2025-03",
+      "fsd": 48.5,
+      "isb": 24.5,
+      "khi": 22.3,
+      "lhr": 38.1,
+      "pew": 29.6
+    },
+    {
+      "month": "2025-04",
+      "fsd": 45.2,
+      "isb": 22.6,
+      "khi": 23.1,
+      "lhr": 39.5,
+      "pew": 23.9
+    },
+    {
+      "month": "2025-05",
+      "fsd": 60.7,
+      "isb": 35.0,
+      "khi": 24.5,
+      "lhr": 59.4,
+      "pew": 34.4
+    },
+    {
+      "month": "2025-06",
+      "fsd": 57.5,
+      "isb": 39.3,
+      "khi": 26.6,
+      "lhr": 54.4,
+      "pew": 37.6
+    },
+    {
+      "month": "2025-07",
+      "fsd": 54.8,
+      "isb": 40.2,
+      "khi": 27.1,
+      "lhr": 52.8,
+      "pew": 45.3
+    },
+    {
+      "month": "2025-08",
+      "fsd": 47.9,
+      "isb": 39.1,
+      "khi": 24.1,
+      "lhr": 47.4,
+      "pew": 38.0
+    },
+    {
+      "month": "2025-09",
+      "fsd": 40.6,
+      "isb": 36.1,
+      "khi": 23.0,
+      "lhr": 40.9,
+      "pew": 36.2
+    },
+    {
+      "month": "2025-10",
+      "fsd": 84.3,
+      "isb": 33.0,
+      "khi": 31.1,
+      "lhr": 70.0,
+      "pew": 33.8
+    },
+    {
+      "month": "2025-11",
+      "fsd": 130.1,
+      "isb": 50.4,
+      "khi": 40.5,
+      "lhr": 100.5,
+      "pew": 43.8
+    },
+    {
+      "month": "2025-12",
+      "fsd": 153.9,
+      "isb": 60.3,
+      "khi": 37.8,
+      "lhr": 121.3,
+      "pew": 57.6
+    },
+    {
+      "month": "2026-01",
+      "fsd": 176.2,
+      "isb": 56.6,
+      "khi": 36.4,
+      "lhr": 151.5,
+      "pew": 58.0
+    },
+    {
+      "month": "2026-02",
+      "fsd": 98.1,
+      "isb": 38.3,
+      "khi": 33.4,
+      "lhr": 81.0,
+      "pew": 40.3
+    },
+    {
+      "month": "2026-03",
+      "fsd": 60.3,
+      "isb": 29.6,
+      "khi": 25.4,
+      "lhr": 45.3,
+      "pew": 30.6
+    },
+    {
+      "month": "2026-04",
+      "fsd": 40.8,
+      "isb": 21.4,
+      "khi": 24.0,
+      "lhr": 27.7,
+      "pew": 24.2
+    },
+    {
+      "month": "2026-05",
+      "fsd": 53.1,
+      "isb": 29.5,
+      "khi": 25.2,
+      "lhr": 45.5,
+      "pew": 28.8
+    },
+    {
+      "month": "2026-06",
+      "fsd": 61.3,
+      "isb": 31.8,
+      "khi": 23.5,
+      "lhr": 54.7,
+      "pew": 38.9
+    },
+    {
+      "month": "2026-07",
+      "fsd": 67.0,
+      "isb": 40.2,
+      "khi": 24.8,
+      "lhr": 66.5,
+      "pew": 43.3
+    },
+    {
+      "month": "2026-08",
+      "fsd": 60.5,
+      "isb": 41.4,
+      "khi": 21.9,
+      "lhr": 58.9,
+      "pew": 46.8
+    },
+    {
+      "month": "2026-09",
+      "fsd": 70.7,
+      "isb": 46.3,
+      "khi": 22.5,
+      "lhr": 61.5,
+      "pew": 46.4
+    },
+    {
+      "month": "2026-10",
+      "fsd": 67.6,
+      "isb": 40.4,
+      "khi": 24.1,
+      "lhr": 61.6,
+      "pew": 40.1
+    }
+  ],
+  "dbt": {
+    "models": 7,
+    "seeds": 2,
+    "data_tests": 53,
+    "unit_tests": 4,
+    "sources": 1
+  },
+  "pytest_passed": 53,
+  "stack": {
+    "airflow": "3.3.2",
+    "dbt_core": "1.12.6",
+    "postgres": "17.11"
+  }
+}

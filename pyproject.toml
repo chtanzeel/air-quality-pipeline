@@ -25,6 +25,10 @@ dbt = [
     "dbt-core==1.12.6",
     "dbt-postgres==1.11.0",
 ]
+# Chart and portfolio stats in docs/ (scripts/).
+docs = [
+    "matplotlib>=3.9,<4",
+]
 
 [project.scripts]
 aq = "air_quality.cli:main"

@@ -1,0 +1,2 @@
+incident_id,start_utc,end_utc,aqi_affected_until_utc,description
+2022-12-13-dropout,2022-12-13 12:00:00+00,2022-12-15 23:00:00+00,2022-12-16 23:00:00+00,"All five cities at once: PM2.5 below 2 µg/m³, NO2 and dust 0, flat ozone, mid smog season. Upstream model output, not a local event."

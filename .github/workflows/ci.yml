@@ -1,0 +1,65 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+# CI never calls the live API: tests use saved fixtures and fake clients, and dbt runs on
+# landing files committed under tests/fixtures/landing.
+
+jobs:
+  lint:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: pip install "ruff==0.17.0"
+      - run: ruff check .
+      - run: ruff format --check .
+
+  test-and-dbt:
+    runs-on: ubuntu-latest
+    env:
+      AQ_REQUIRE_POSTGRES: "1"
+    steps:
+      - uses: actions/checkout@v4
+      - name: Start Postgres (same image and init script as local)
+        run: |
+          cp .env.example .env
+          docker compose config --quiet
+          docker compose up -d --wait postgres
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+      - run: pip install -e ".[dev,dbt]"
+      - name: pytest (unit tests and loader tests on real Postgres)
+        run: pytest -v
+      - name: Load the fixture dataset (replay of committed landing files, no API calls)
+        env:
+          AQ_LANDING_DIR: tests/fixtures/landing
+        run: aq replay tests/fixtures/landing
+      - name: dbt build (seeds, models, data tests, unit tests)
+        run: aq dbt build
+
+  dag-integrity:
+    runs-on: ubuntu-latest
+    env:
+      AQ_REQUIRE_AIRFLOW: "1"
+      AIRFLOW__CORE__LOAD_EXAMPLES: "false"
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+      - name: Install Airflow 3.3.2 with its constraints, plus the pipeline package
+        run: >
+          pip install "apache-airflow==3.3.2" apache-airflow-providers-standard
+          -e ".[dev]"
+          --constraint "https://raw.githubusercontent.com/apache/airflow/constraints-3.3.2/constraints-3.12.txt"
+      - name: DAG integrity tests
+        run: pytest -v tests/test_dags.py

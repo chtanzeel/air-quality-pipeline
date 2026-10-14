@@ -76,11 +76,13 @@ select
         as rank_most_polluted,
     lag(j.mean_pm2_5_ug_m3) over (partition by j.city_id order by j.smog_season)
         as prev_season_mean_pm2_5_ug_m3,
-    round(
+    -- Not computed for a partial season: a few weeks of October against a full season would
+    -- mostly measure the calendar, not the air.
+    case when j.season_end <= t.last_day then round(
         100.0 * (j.mean_pm2_5_ug_m3
             - lag(j.mean_pm2_5_ug_m3) over (partition by j.city_id order by j.smog_season))
         / nullif(lag(j.mean_pm2_5_ug_m3) over (partition by j.city_id order by j.smog_season), 0),
         1
-    ) as pct_change_vs_prev_season
+    ) end as pct_change_vs_prev_season
 from joined j
 cross join data_through t

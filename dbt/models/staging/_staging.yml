@@ -88,6 +88,13 @@ unit_tests:
           - {city_id: lhr, measured_at: "2023-12-31 21:00:00+00", pm2_5: 10, pm10: 20}
           - {city_id: lhr, measured_at: "2025-01-31 18:00:00+00", pm2_5: 10, pm10: 20}
           - {city_id: lhr, measured_at: "2025-01-31 19:00:00+00", pm2_5: 10, pm10: 20}
+      - input: ref('upstream_incidents')
+        format: sql
+        rows: |
+          select null::text as incident_id, null::timestamptz as start_utc,
+                 null::timestamptz as end_utc, null::timestamptz as aqi_affected_until_utc,
+                 null::text as description
+          where false
     expect:
       rows:
         - {measured_at: "2024-09-30 18:00:00+00", date_pkt: "2024-09-30", smog_season: null, is_native_step: true}
@@ -105,9 +112,18 @@ unit_tests:
           - {city_id: lhr, measured_at: "2025-11-01 01:00:00+00", pm2_5: -1, pm10: 120, ozone: 30, us_aqi: 160}
           - {city_id: lhr, measured_at: "2025-11-01 02:00:00+00", pm2_5: 130, pm10: 120, ozone: -2, us_aqi: 160}
           - {city_id: lhr, measured_at: "2025-11-01 03:00:00+00", pm2_5: 80, pm10: 120, carbon_monoxide: 200000, us_aqi: 160}
+          - {city_id: lhr, measured_at: "2025-11-01 05:00:00+00", pm2_5: 0.5, pm10: 1, us_aqi: 40}
+          - {city_id: lhr, measured_at: "2025-11-01 06:00:00+00", pm2_5: 90, pm10: 130, us_aqi: 45}
+          - {city_id: lhr, measured_at: "2025-11-01 07:00:00+00", pm2_5: 90, pm10: 130, us_aqi: 170}
+      - input: ref('upstream_incidents')
+        rows:
+          - {incident_id: test-dropout, start_utc: "2025-11-01 04:00:00+00", end_utc: "2025-11-01 05:00:00+00", aqi_affected_until_utc: "2025-11-01 06:00:00+00"}
     expect:
       rows:
         - {measured_at: "2025-11-01 00:00:00+00", quarantine_reason: null}
         - {measured_at: "2025-11-01 01:00:00+00", quarantine_reason: "negative pm2_5"}
         - {measured_at: "2025-11-01 02:00:00+00", quarantine_reason: "negative ozone; pm2_5 exceeds pm10"}
         - {measured_at: "2025-11-01 03:00:00+00", quarantine_reason: "carbon_monoxide above 100000"}
+        - {measured_at: "2025-11-01 05:00:00+00", quarantine_reason: "upstream incident test-dropout"}
+        - {measured_at: "2025-11-01 06:00:00+00", quarantine_reason: "us_aqi affected by upstream incident test-dropout"}
+        - {measured_at: "2025-11-01 07:00:00+00", quarantine_reason: null}

@@ -58,21 +58,32 @@ renamed as (
 )
 
 select
-    city_id,
-    measured_at,
-    measured_at_pkt,
-    date_pkt,
-    hour_utc,
-    is_native_step,
-    {{ smog_season('date_pkt') }} as smog_season,
+    r.city_id,
+    r.measured_at,
+    r.measured_at_pkt,
+    r.date_pkt,
+    r.hour_utc,
+    r.is_native_step,
+    {{ smog_season('r.date_pkt') }} as smog_season,
     {%- for name in measures.values() %}
-    {{ name }},
+    r.{{ name }},
     {%- endfor %}
-    us_aqi,
-    grid_latitude,
-    grid_longitude,
-    quarantine_reason,
-    _source_file,
-    _loaded_at,
-    _batch_id
-from renamed
+    r.us_aqi,
+    r.grid_latitude,
+    r.grid_longitude,
+    -- Known upstream incidents (seeds/upstream_incidents.csv). us_aqi uses rolling means of up
+    -- to 24 h, so it stays distorted after the incident ends, until aqi_affected_until_utc.
+    nullif(concat_ws('; ',
+        r.quarantine_reason,
+        case
+            when i.incident_id is null then null
+            when r.measured_at <= i.end_utc then 'upstream incident ' || i.incident_id
+            else 'us_aqi affected by upstream incident ' || i.incident_id
+        end
+    ), '') as quarantine_reason,
+    r._source_file,
+    r._loaded_at,
+    r._batch_id
+from renamed r
+left join {{ ref('upstream_incidents') }} i
+    on r.measured_at between i.start_utc and i.aqi_affected_until_utc
